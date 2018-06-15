@@ -2,53 +2,48 @@
 
 const bcrypt    = require('bcrypt');
 const params    = require('../params');
+const messages  = require('../messages');
 const jwt       = require('jsonwebtoken');
 
 module.exports = (app) => 
 {
   app.post('/signIn', (req, res) => 
   {
-    req.body.email      == undefined ||
-    req.body.password   == undefined ?
+    if(req.body.email == undefined) res.status(406).send({ message: messages.MISSING_EMAIL_ADDRESS, detail: null });
 
-    res.status(406).send({ message: 'Missing data in request' }) :
+    else if(req.body.password == undefined) res.status(406).send({ message: messages.MISSING_PASSWORD, detail: null });
 
-    bcrypt.hash(req.body.password , params.salt, (error, encryptedPassword) =>
+    else
     {
-      if(error) res.status(500).send({ message: error.message });
-
-      else
+      bcrypt.hash(req.body.password , params.salt, (error, encryptedPassword) =>
       {
-        req.app.get('connection').query(`SELECT * FROM users WHERE MAIL = "${req.body.email}" AND PASSWORD = "${encryptedPassword}"`, (error, result) =>
+        if(error) res.status(500).send({ message: messages.ENCRYPTION_ERROR, detail: error.message });
+
+        else
         {
-          if(error) res.status(500).send({ message: error.message });
-
-          else
+          req.app.get('connection').query(`SELECT * FROM users WHERE MAIL = "${req.body.email}" AND PASSWORD = "${encryptedPassword}"`, (error, result) =>
           {
-            result[0] == undefined ?
+            if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message});
 
-            res.status(406).send({ message: 'Account not found in the database' }) :
-
-            jwt.sign({ email: result[0].MAIL }, params.secretKey, { expiresIn: (60 * 60 * 24) }, (error, token) =>
+            else
             {
-              if(error) res.status(500).send({ message: error.message });
+              result[0] == undefined ?
 
-              else
+              res.status(406).send({ message: messages.ACCOUNT_NOT_FOUND, detail: null }) :
+
+              jwt.sign({ email: result[0].MAIL }, params.secretKey, { expiresIn: (60 * 60 * 24) }, (error, token) =>
               {
-                res.status(200).send(
+                if(error) res.status(500).send({ message: messages.TOKEN_CREATION_ERROR, detail: error.message });
+
+                else
                 {
-                  id: result[0].USER_ID,
-                  email: result[0].MAIL,
-                  password: result[0].PASSWORD,
-                  lastname: result[0].LASTNAME,
-                  firstname: result[0].FIRSTNAME,
-                  token: token
-                });
-              }
-            });
-          }
-        });
-      }
-    });
+                  res.status(200).send({ token: token });
+                }
+              });
+            }
+          });
+        }
+      });
+    }
   });
 };

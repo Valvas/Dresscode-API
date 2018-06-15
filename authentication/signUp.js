@@ -2,6 +2,7 @@
 
 const bcrypt        = require('bcrypt');
 const params        = require('../params');
+const messages      = require('../messages');
 const jwt           = require('jsonwebtoken');
 
 module.exports = (app) => 
@@ -10,10 +11,13 @@ module.exports = (app) =>
 
     app.post('/signUp', (req, res) =>
     {
-        if(req.body.email      == undefined || req.body.password   == undefined || req.body.lastname   == undefined || req.body.firstname  == undefined)
-        {
-            res.status(406).send({ message: 'Missing data in the request' });
-        }
+        if(req.body.email == undefined) res.status(406).send({ message: messages.MISSING_EMAIL_ADDRESS, detail: null });
+
+        else if(req.body.password == undefined) res.status(406).send({ message: messages.MISSING_PASSWORD, detail: null });
+
+        else if(req.body.lastname == undefined) res.status(406).send({ message: messages.MISSING_LASTNAME, detail: null });
+
+        else if(req.body.firstname == undefined) res.status(406).send({ message: messages.MISSING_FIRSTNAME, detail: null });
 
         else
         {
@@ -30,7 +34,7 @@ module.exports = (app) =>
     {
         if(new RegExp("^[a-zA-Z][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]$").test(account.email) == false)
         {
-            res.status(406).send({ message: "Wrong email format" });
+            res.status(406).send({ message: messages.INCORRECT_EMAIL_ADDRESS_FORMAT, detail: null });
         }
 
         else
@@ -43,11 +47,11 @@ module.exports = (app) =>
     {
         req.app.get('connection').query(`SELECT * FROM users WHERE MAIL = "${account.email}"`, (error, result) =>
         {
-            if(error) res.status(500).send({ message: error.message });
+            if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
 
             else if(result.length > 0)
             {
-                res.status(406).send({ message: 'Email address not available' });
+                res.status(406).send({ message: messages.EMAIL_ADDRESS_NOT_AVAILABLE, detail: null });
             }
 
             else
@@ -61,7 +65,7 @@ module.exports = (app) =>
     {
         bcrypt.hash(account.password, params.salt, (error, encryptedPassword) =>
         {
-            if(error) res.status(500).send({ message: error.message });
+            if(error) res.status(500).send({ message: messages.ENCRYPTION_ERROR, detail: error.message });
 
             else
             {
@@ -76,7 +80,7 @@ module.exports = (app) =>
     {
         req.app.get('connection').query(`INSERT INTO users (MAIL, PASSWORD, FIRSTNAME, LASTNAME) values ("${account.email}", "${account.password}", "${account.firstname.toLowerCase()}", "${account.lastname.toLowerCase()}")`, (error, insertedID) =>
         {
-            if(error) res.status(500).send({ message: error.message });
+            if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
 
             else
             {
@@ -89,7 +93,7 @@ module.exports = (app) =>
     {
         jwt.sign({ email: account.email }, params.secretKey, { expiresIn: (60 * 60 * 24) }, (error, token) =>
         {
-            if(error) res.status(500).send({ message: error.message });
+            if(error) res.status(500).send({ message: messages.TOKEN_CREATION_ERROR, detail: error.message });
 
             else
             {
