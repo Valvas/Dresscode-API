@@ -11,6 +11,13 @@ let app = express();
 app.use(cookieParser());
 app.use(bodyParser.json());
 
+app.use((req, res, next) =>
+{
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  next();
+});
+
 require('./authentication')(app);
 require('./routes')(app);
 
@@ -21,13 +28,6 @@ const connection = mysql.createConnection(
   password      : params.database.password,
   database      : params.database.database,
   insecureAuth  : true
-});
-
-app.use((req, res, next) =>
-{
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  next();
 });
 
 app.set('connection', connection);
