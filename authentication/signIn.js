@@ -29,7 +29,7 @@ module.exports = (app) =>
 
             res.status(406).send({ message: 'Account not found in the database' }) :
 
-            jwt.sign(result[0].MAIL, params.secretKey, { expiresIn: (60 * 60 * 24) }, (error, token) =>
+            jwt.sign({ email: result[0].MAIL }, params.secretKey, { expiresIn: (60 * 60 * 24) }, (error, token) =>
             {
               if(error) res.status(500).send({ message: error.message });
 
