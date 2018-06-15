@@ -41,7 +41,7 @@ module.exports = (app) =>
 
     function checkIfEmailIsAvailable(account, req, res)
     {
-        req.app.get('connection').query(`SELECT * FROM users WHERE MAIL = ${account.email}`, (error, result) =>
+        req.app.get('connection').query(`SELECT * FROM users WHERE MAIL = "${account.email}"`, (error, result) =>
         {
             if(error) res.status(500).send({ message: error.message });
 
