@@ -1,47 +1,100 @@
 'use strict';
 
-var mysql = require('mysql');
-var db= require('../db/dbProperties');
-var connection = mysql.createConnection(db.connection);
-var _ = require('lodash');
-var jwt = require('jsonwebtoken');
+const bcrypt        = require('bcrypt');
+const params        = require('../params');
+const jwt           = require('jsonwebtoken');
 
-module.exports = function(app) {
+module.exports = (app) => 
+{
+    var account = {};
 
-    var secretKey = "secretKey";
-    function createToken(user) {
-        return jwt.sign(_.omit(user, 'password'), secretKey, { expiresIn: 60*60*5 });
+    app.post('/signUp', (req, res) =>
+    {
+        if(req.body.email      == undefined || req.body.password   == undefined || req.body.lastname   == undefined || req.body.firstname  == undefined)
+        {
+            res.status(406).send({ message: 'Missing data in the request' });
+        }
+
+        else
+        {
+            account.email       = req.body.email;
+            account.password    = req.body.password;
+            account.lastname    = req.body.lastname;
+            account.firstname   = req.body.firstname;
+
+            checkEmailFormat(account, req, res);
+        }
+    });
+
+    function checkEmailFormat(account, req, res)
+    {
+        if(new RegExp("^[a-zA-Z][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]$").test(account.email) == false)
+        {
+            res.status(406).send({ message: "Wrong email format" });
+        }
+
+        else
+        {
+            checkIfEmailIsAvailable(account, req, res);
+        }
     }
 
-    function getUserDB(email, done) {
-        connection.query('SELECT * FROM users WHERE mail = ? LIMIT 1', [email], function(err, rows, fields) {
-            if (err) throw err;
-            done(rows[0]);
+    function checkIfEmailIsAvailable(account, req, res)
+    {
+        req.app.get('connection').query(`SELECT * FROM users WHERE MAIL = ${account.email}`, (error, result) =>
+        {
+            if(error) res.status(500).send({ message: error.message });
+
+            else if(result.length > 0)
+            {
+                res.status(406).send({ message: 'Email address not available' });
+            }
+
+            else
+            {
+                encryptPassword(account, req, res);
+            }
         });
     }
 
-    app.post('/signUp', function(req, res) {
-      getUserDB(req.body.email, function(user){
-          if(!user) {
-              user = {
-                  mail: req.body.email,
-                  password: req.body.password,
-                  firstname: req.body.firstname,
-                  lastname: req.body.lastname
-              };
-              connection.query('INSERT INTO users SET ?', [user], function(err, result){
-                  if (err) throw err;
-                  res.status(201).send({
-                    email: user.MAIL,
-                    password: user.PASSWORD,
-                    firstname: user.FIRSTNAME,
-                    lastname: user.LASTNAME ,
-                    id_token: createToken(user)
-                  });
-              });
-          }
-          else res.status(406).send("Un utilisateur avec cette adresse email éxiste déjà");
-      });
-    });
+    function encryptPassword(account, req, res)
+    {
+        bcrypt.hash(account.password, params.salt, (error, encryptedPassword) =>
+        {
+            if(error) res.status(500).send({ message: error.message });
 
+            else
+            {
+                account.password = encryptedPassword;
+
+                saveAccountInDatabase(account, req, res);
+            }
+        });
+    }
+
+    function saveAccountInDatabase(account, req, res)
+    {
+        req.app.get('connection').query(`INSERT INTO users (MAIL, PASSWORD, FIRSTNAME, LASTNAME) values ("${account.email}", "${account.password}", "${account.firstname.toLowerCase()}", "${account.lastname.toLowerCase()}")`, (error, insertedID) =>
+        {
+            if(error) res.status(500).send({ message: error.message });
+
+            else
+            {
+                createToken(account, req, res);
+            }
+        });
+    }
+
+    function createToken(account, req, res)
+    {
+        jwt.sign(account.email, params.secretKey, { expiresIn: 60 * 60 * 24 }, (error, token) =>
+        {
+            if(error) res.status(500).send({ message: error.message });
+
+            else
+            {
+                res.status(201).send({ token: token });
+            }
+        });
+    }
 };
