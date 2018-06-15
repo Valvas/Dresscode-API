@@ -11,7 +11,7 @@ module.exports.obtainNewToken = (token, callback) =>
     {
         if(error && error.name !== 'TokenExpiredError') return callback({ status: 406, message: error.message });
 
-        jwt.sign(decoded, params.secretKey, { expiresIn: 60 * 60 * 24 }, (error, token) =>
+        jwt.sign(decoded, params.secretKey, { expiresIn: (60 * 60 * 24) }, (error, token) =>
         {
             if(error) return callback({ status: 500, message: error.message });
 

@@ -87,7 +87,7 @@ module.exports = (app) =>
 
     function createToken(account, req, res)
     {
-        jwt.sign(account.email, params.secretKey, { expiresIn: 60 * 60 * 24 }, (error, token) =>
+        jwt.sign(account.email, params.secretKey, { expiresIn: (60 * 60 * 24) }, (error, token) =>
         {
             if(error) res.status(500).send({ message: error.message });
 
