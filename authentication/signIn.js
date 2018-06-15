@@ -1,42 +1,54 @@
 'use strict';
 
-var mysql = require('mysql');
-var db= require('../db/dbProperties');
-var connection = mysql.createConnection(db.connection);
-var _ = require('lodash');
-var jwt = require('jsonwebtoken');
+const bcrypt    = require('bcrypt');
+const params    = require('../params');
+const jwt       = require('jsonwebtoken');
 
-module.exports = function(app) {
+module.exports = (app) => 
+{
+  app.post('/signIn', (req, res) => 
+  {
+    req.body.email      == undefined ||
+    req.body.password   == undefined ?
 
-    var secretKey = "secretKey"; // TODO:
-    function createToken(user) {
-        return jwt.sign(_.omit(user, 'password'), secretKey, { expiresIn: 60*60*5 });
-    }
+    res.status(406).send({ message: 'Missing data in request' }) :
 
-    function getUserDB(email, done) {
-        connection.query('SELECT * FROM users WHERE mail = ? LIMIT 1', [email], function(err, rows, fields) {
-            if (err) throw err;
-            done(rows[0]);
+    bcrypt.hash(req.body.password , params.salt, (error, encryptedPassword) =>
+    {
+      if(error) res.status(500).send({ message: error.message });
+
+      else
+      {
+        req.app.get('connection').query(`SELECT * FROM users WHERE MAIL = "${req.body.email}" AND PASSWORD = "${encryptedPassword}"`, (error, result) =>
+        {
+          if(error) res.status(500).send({ message: error.message });
+
+          else
+          {
+            result[0] == undefined ?
+
+            res.status(406).send({ message: 'Account not found in the database' }) :
+
+            jwt.sign(result[0].MAIL, params.secretKey, { expiresIn: 60 * 60 * 24 }, (error, token) =>
+            {
+              if(error) res.status(500).send({ message: error.message });
+
+              else
+              {
+                res.status(200).send(
+                {
+                  id: result[0].USER_ID,
+                  email: result[0].MAIL,
+                  password: result[0].PASSWORD,
+                  lastname: result[0].LASTNAME,
+                  firstname: result[0].FIRSTNAME,
+                  token: token
+                });
+              }
+            });
+          }
         });
-    }
-
-  app.post('/signIn', function(req, res) {
-    getUserDB(req.body.email, function(user){
-      if (!user) {
-        return res.status(406).send("Un des identifiants est incorect");
       }
-      else if (user.PASSWORD !== req.body.password) {
-          return res.status(406).send("Un des identifiants est incorect");
-      }
-      res.status(201).send({
-        email: user.MAIL,
-        password: user.PASSWORD,
-        firstname: user.FIRSTNAME,
-        lastname: user.LASTNAME ,
-        id_token: createToken(user),
-        user_id: user.USER_ID,
-      });
     });
   });
-
 };

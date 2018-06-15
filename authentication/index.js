@@ -1,6 +1,8 @@
 'use strict';
 
-module.exports = function(app) {
+module.exports = (app) => 
+{
   require('./signIn')(app);
   require('./signUp')(app);
+  require('./token')(app);
 };

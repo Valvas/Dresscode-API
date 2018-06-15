@@ -1,10 +1,12 @@
 'use strict';
 
-module.exports = {
-    'connection': {
+module.exports = 
+{
+    'connection': 
+    {
         'host': 'localhost',
         'user': 'root',
-        'password': '',
+        'password': 'root',
         'database': 'dresscode'
     }
 };

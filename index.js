@@ -1,21 +1,31 @@
-'use strict';
+'use strict'
 
-const express = require('express');
+const cookieParser    = require('cookie-parser');
+const bodyParser      = require('body-parser');
+const params          = require('./params');
+const express         = require('express');
+const mysql           = require('mysql');
+
 let app = express();
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-//var morgan = require('morgan');
 
-//app.use(morgan('dev'));
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({
-	extended: true
-}));
 app.use(bodyParser.json());
 
 require('./authentication')(app);
 require('./routes')(app);
 
-app.listen(8080, function() {
-  console.log('Server has started port 8080');
+const connection = mysql.createConnection(
+{
+  host          : params.database.host,
+  user          : params.database.user,
+  password      : params.database.password,
+  database      : params.database.database,
+  insecureAuth  : true
+});
+
+app.set('connection', connection);
+
+app.listen(3000, () => 
+{
+  console.log('Server has started port 3000');
 });
