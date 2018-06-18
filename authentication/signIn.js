@@ -21,23 +21,33 @@ module.exports = (app) =>
 
         else
         {
-          req.app.get('connection').query(`SELECT * FROM users WHERE MAIL = "${req.body.email}" AND PASSWORD = "${encryptedPassword}"`, (error, result) =>
+          req.app.get('pool', (error, connection) =>
           {
             if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message});
 
             else
             {
-              result[0] == undefined ?
-
-              res.status(406).send({ message: messages.ACCOUNT_NOT_FOUND, detail: null }) :
-
-              jwt.sign({ email: result[0].MAIL }, params.secretKey, { expiresIn: (60 * 60 * 24) }, (error, token) =>
+              connection.query(`SELECT * FROM users WHERE MAIL = "${req.body.email}" AND PASSWORD = "${encryptedPassword}"`, (error, result) =>
               {
-                if(error) res.status(500).send({ message: messages.TOKEN_CREATION_ERROR, detail: error.message });
-
+                connection.release();
+                
+                if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message});
+    
                 else
                 {
-                  res.status(200).send({ token: token });
+                  result[0] == undefined ?
+    
+                  res.status(406).send({ message: messages.ACCOUNT_NOT_FOUND, detail: null }) :
+    
+                  jwt.sign({ email: result[0].MAIL }, params.secretKey, { expiresIn: (60 * 60 * 24) }, (error, token) =>
+                  {
+                    if(error) res.status(500).send({ message: messages.TOKEN_CREATION_ERROR, detail: error.message });
+    
+                    else
+                    {
+                      res.status(200).send({ token: token });
+                    }
+                  });
                 }
               });
             }

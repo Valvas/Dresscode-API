@@ -22,6 +22,16 @@ app.use((req, res, next) =>
 require('./authentication')(app);
 require('./routes')(app);
 
+const pool  = mysql.createPool(
+{
+  connectionLimit : 10,
+  host            : params.database.host,
+  user            : params.database.user,
+  password        : params.database.password,
+  database        : params.database.database,
+  insecureAuth    : true
+});
+
 const connection = mysql.createConnection(
 {
   host          : params.database.host,
@@ -32,6 +42,7 @@ const connection = mysql.createConnection(
 });
 
 app.set('connection', connection);
+app.set('pool', pool);
 
 app.listen(3000, () => 
 {
