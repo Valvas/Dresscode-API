@@ -18,10 +18,10 @@ module.exports = (app) =>
       bcrypt.hash(req.body.password , params.salt, (error, encryptedPassword) =>
       {
         if(error) res.status(500).send({ message: messages.ENCRYPTION_ERROR, detail: error.message });
-
+        
         else
         {
-          req.app.get('pool', (error, connection) =>
+          req.app.get('pool').getConnection((error, connection) =>
           {
             if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message});
 
