@@ -32,16 +32,6 @@ const pool  = mysql.createPool(
   insecureAuth    : true
 });
 
-const connection = mysql.createConnection(
-{
-  host          : params.database.host,
-  user          : params.database.user,
-  password      : params.database.password,
-  database      : params.database.database,
-  insecureAuth  : true
-});
-
-app.set('connection', connection);
 app.set('pool', pool);
 
 app.listen(3000, () => 
