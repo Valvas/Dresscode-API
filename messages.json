@@ -10,5 +10,11 @@
   "TOKEN_CREATION_ERROR": "Une erreur est survenue pendant la création du token d'authentification",
   "ACCOUNT_NOT_FOUND": "Compte non trouvé dans la base de données",
   "MISSING_TOKEN": "Le token est manquant dans la requête",
-  "TOKEN_READING_ERROR": "Erreur pendant la lecture du token"
+  "TOKEN_READING_ERROR": "Erreur pendant la lecture du token",
+  "MISSING_TYPE": "Le type de vêtement est manquant dans la requête",
+  "MISSING_COLOR": "La couleur du vêtement est manquante dans la requête",
+  "MISSING_PICTURE": "La photo du vêtement est manquante dans la requête",
+  "ACCOUNT_DOES_NOT_EXIST": "Ce compte n'existe pas",
+  "WARDROBE_ELEMENT_ADDED": "L'élement a été enregistré",
+  "NO_ELEMENT_FOUND": "Aucun élément trouvé pour l'id "
 }

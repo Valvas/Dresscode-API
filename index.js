@@ -9,7 +9,7 @@ const mysql           = require('mysql');
 let app = express();
 
 app.use(cookieParser());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '5mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use((req, res, next) =>
@@ -32,16 +32,6 @@ const pool  = mysql.createPool(
   insecureAuth    : true
 });
 
-const connection = mysql.createConnection(
-{
-  host          : params.database.host,
-  user          : params.database.user,
-  password      : params.database.password,
-  database      : params.database.database,
-  insecureAuth  : true
-});
-
-app.set('connection', connection);
 app.set('pool', pool);
 
 app.listen(3000, () => 

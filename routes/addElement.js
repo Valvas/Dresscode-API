@@ -1,64 +1,55 @@
-'use strict';
+'use strict'
 
-var mysql = require('mysql');
-var db= require('../db/dbProperties');
-var connection = mysql.createConnection(db.connection);
+const messages    = require('../messages');
+const functions   = require('../functions');
 
-module.exports = function(app) {
+module.exports = (app) =>
+{
+  app.post('/addElement', (req, res) =>
+  {
+    if(req.headers.authorization == undefined) res.status(406).send({ message: messages.MISSING_TOKEN, detail: null });
 
-  function existsElement(name, callback) {
-    connection.query('SELECT * FROM element WHERE name = ? LIMIT 1', [name], function(err, result) {
-        if (err) callback(err.message);
-        else {
-            callback(null, result[0]);
-        }
-    });
-  }
+    else if(req.body.type == undefined) res.status(406).send({ message: messages.MISSING_TYPE, detail: null });
 
-  app.post('/addElement', function(req, res) {
+    else if(req.body.color == undefined) res.status(406).send({ message: messages.MISSING_COLOR, detail: null });
 
-    existsElement(req.body.name, function(err, element){
-        if (err) res.status(500).send(err);
-        if(!element) {
-            element = {
-                name: req.body.name,
-                image: req.body.image,
-                type_id: req.body.type_id
-                //user_id: req.body.user_id,
-            };
-            var color = req.body.color_id;
-            var elementId;
-            connection.query('INSERT INTO element SET ?', [element], function(err, result){
-                if (err) res.status(500).send(err.message);
-                else {
-                  elementId = result.insertId;
+    else if(req.body.picture == undefined) res.status(406).send({ message: messages.MISSING_PICTURE, detail: null });
 
-                  var x = 0;
-                  var loop = () =>
+    else
+    {
+      functions.getEmailFromToken(req.headers.authorization, (error, email) =>
+      {
+        if(error != null) res.status(error.status).send({ message: error.message, detail: error.detail });
+
+        else
+        {
+          req.app.get('pool').getConnection((error, connection) =>
+          {
+            if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+
+            else
+            {
+              functions.getAccountFromEmail(email, connection, (error, account) =>
+              {
+                if(error != null) res.status(error.status).send({ message: error.message, detail: error.detail });
+
+                else
+                {
+                  connection.query(`INSERT INTO element (IMAGE, TYPE_ID, COLOR_ID, USER_ID) VALUES ("${req.body.picture}", ${req.body.type}, ${req.body.color}, ${account.USER_ID})`, (error, insertedId) =>
                   {
-                    if(typeof(color[x]) != "number") {
-                      res.status(406).send("Il ne s'agit pas d'id de couleurs");
-                    }
-                    else {
-                      connection.query(`INSERT INTO element_x_color VALUES(?,?)`, [color[x], elementId], function(err, result){
-                          if (err) res.status(500).send(err.message);
+                    if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
 
-                          if((x += 1) < (color.length - 1)) loop();
-
-                          else {
-                            res.status(201).send("OK");
-                          }
-                      });
+                    else
+                    {
+                      res.status(201).send({ message: messages.WARDROBE_ELEMENT_ADDED })
                     }
-                  }
-                  loop();
+                  });
                 }
-            });
+              });
+            }
+          });
         }
-        else {
-          res.status(406).send("Un élément avec ce nom éxiste déjà");
-        }
-    });
+      });
+    }
   });
-
 };
