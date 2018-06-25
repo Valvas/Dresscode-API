@@ -4,6 +4,6 @@
   "signIn": "POST : email -- password",
   "addElement": "POST : authorization -- type -- color -- picture",
   "getNewToken": "PUT : token",
-  "getAllElements": "GET : token",
-  "getUserData": "GET : token"
+  "getAllElements": "GET : authorization",
+  "getUserData": "GET : authorization"
 }

@@ -45,7 +45,11 @@ module.exports = (app) =>
 
                     else
                     {
-                      res.status(200).send({ token: token });
+                      res.status(200).send({ token: token,
+                                             email: result[0].MAIL,
+                                             firstname: result[0].FIRSTNAME,
+                                             lastname: result[0].LASTNAME
+                                          });
                     }
                   });
                 }

@@ -5,7 +5,7 @@ const params        = require('../params');
 const messages      = require('../messages');
 const jwt           = require('jsonwebtoken');
 
-module.exports = (app) => 
+module.exports = (app) =>
 {
     var account = {};
 
@@ -97,7 +97,7 @@ module.exports = (app) =>
                 connection.query(`INSERT INTO users (MAIL, PASSWORD, FIRSTNAME, LASTNAME) values ("${account.email}", "${account.password}", "${account.firstname.toLowerCase()}", "${account.lastname.toLowerCase()}")`, (error, insertedID) =>
                 {
                     connection.release();
-                    
+
                     if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
 
                     else
