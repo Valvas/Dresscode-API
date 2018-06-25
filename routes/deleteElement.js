@@ -5,9 +5,11 @@ const functions   = require('../functions');
 
 module.exports = (app) =>
 {
-  app.get('/getUserData', (req, res) =>
+  app.delete('/deleteElement', (req, res) =>
   {
     if(req.headers.authorization == undefined) res.status(406).send({ message: messages.MISSING_TOKEN, detail: null });
+
+    else if(req.body.elementId == undefined) res.status(406).send({ message: messages.MISSING_ID, detail: null });
 
     else
     {
@@ -29,27 +31,14 @@ module.exports = (app) =>
 
                 else
                 {
-                  connection.query(`SELECT * FROM users WHERE USER_ID = ${account.USER_ID}`, (error, result) =>
+                  connection.query(`DELETE FROM element WHERE USER_ID = ${account.USER_ID} and ELEMENT_ID = ${req.body.elementId}`, (error) =>
                   {
                     connection.release();
                     if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
 
                     else
                     {
-                      if(result[0] == undefined)
-                      {
-                        res.status(406).send({ message: messages.ACCOUNT_DOES_NOT_EXIST });
-                      }
-                      else
-                      {
-                        var user = {
-                          user_id: result[0].USER_ID,
-                          email: result[0].MAIL,
-                          firstname: result[0].FIRSTNAME,
-                          lastname: result[0].LASTNAME
-                        };
-                        res.status(200).send({ user: user });
-                      }
+                      res.status(201).send({ message: messages.WARDROBE_ELEMENT_DELETED })
                     }
                   });
                 }
@@ -60,4 +49,4 @@ module.exports = (app) =>
       });
     }
   });
-}
+};

@@ -5,5 +5,6 @@
   "addElement": "POST : authorization -- type -- color -- picture",
   "getNewToken": "PUT : token",
   "getAllElements": "GET : authorization",
-  "getUserData": "GET : authorization"
+  "getUserData": "GET : authorization",
+  "deleteElement": "DELETE : authorization -- elementId"
 }

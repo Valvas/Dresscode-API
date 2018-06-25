@@ -37,6 +37,7 @@ module.exports = (app) =>
                 {
                   connection.query(`INSERT INTO element (IMAGE, TYPE_ID, COLOR_ID, USER_ID) VALUES ("${req.body.picture}", ${req.body.type}, ${req.body.color}, ${account.USER_ID})`, (error, insertedId) =>
                   {
+                    connection.release();
                     if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
 
                     else

@@ -31,6 +31,7 @@ module.exports = (app) =>
                 {
                   connection.query(`SELECT * FROM element WHERE USER_ID = ${account.USER_ID}`, (error, result) =>
                   {
+                    connection.release();
                     if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
 
                     else
