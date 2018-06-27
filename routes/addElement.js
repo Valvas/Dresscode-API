@@ -35,14 +35,13 @@ module.exports = (app) =>
 
                 else
                 {
-                  connection.query(`INSERT INTO element (IMAGE, TYPE_ID, COLOR_ID, USER_ID) VALUES ("${req.body.picture}", ${req.body.type}, ${req.body.color}, ${account.USER_ID})`, (error, insertedId) =>
+                  connection.query(`INSERT INTO element (IMAGE, TYPE_ID, USER_ID) VALUES ("${req.body.picture}", ${req.body.type}, ${account.USER_ID})`, (error, result) =>
                   {
-                    connection.release();
                     if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
 
                     else
                     {
-                      res.status(201).send({ message: messages.WARDROBE_ELEMENT_ADDED })
+                      insertColorsOfElement(connection, result.insertId, req.body.color, 0, res);
                     }
                   });
                 }
@@ -53,4 +52,25 @@ module.exports = (app) =>
       });
     }
   });
+
+  function insertColorsOfElement(connection, elementId, colors, index, res)
+  {
+    if(index < colors.length)
+    {
+      connection.query(`INSERT INTO element_x_color (ELEMENT_ID, COLOR_ID) VALUES (${elementId}, ${colors[index]})`, (error) =>
+      {
+        if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+
+        else
+        {
+          insertColorsOfElement(connection, elementId, colors, (index+1), res);
+        }
+      });
+    }
+    else
+    {
+        connection.release();
+        res.status(201).send({ message: messages.WARDROBE_ELEMENT_ADDED });
+    }
+  }
 };
