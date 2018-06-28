@@ -6,5 +6,7 @@
   "getNewToken": "PUT : token",
   "getAllElements": "GET : authorization",
   "getUserData": "GET : authorization",
-  "deleteElement": "DELETE : authorization -- elementId"
+  "deleteElement": "DELETE : authorization -- elementId",
+  "changeNames": "POST : authorization -- firstname -- lastname",
+  "changeEmailAddress": "POST : authorization -- email"
 }

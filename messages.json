@@ -18,5 +18,11 @@
   "WARDROBE_ELEMENT_ADDED": "L'élement a été enregistré",
   "NO_ELEMENT_FOUND": "Aucun élément trouvé pour l'id ",
   "MISSING_ID": "L'id du vêtement est manquant dans la requête",
-  "WARDROBE_ELEMENT_DELETED": "L'élément a bien été supprimé"
+  "WARDROBE_ELEMENT_DELETED": "L'élément a bien été supprimé",
+  "WARDROBE_NAMES_CHANGED": "Vos nom et prénom ont bien été changés",
+  "WARDROBE_EMAIL_ADDRESS_CHANGED": "Votre adresse email a bien été changée",
+  "MISSING_OLD_PASSWORD": "L'ancien mot de passe est manquant dans la requête",
+  "MISSING_NEW_PASSWORD": "Le nouveau mot de passe est manquant dans la requête",
+  "INCORECT_OLD_PASSWORD": "L'ancien mot de passe est incorrect",
+  "WARDROBE_PASSWORD_CHANGED": "Votre mot de passe a bien été changé"
 }

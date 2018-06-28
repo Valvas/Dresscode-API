@@ -6,4 +6,7 @@ module.exports = (app) =>
   require('./getAllElements')(app);
   require('./getUserData')(app);
   require('./deleteElement')(app);
+  require('./changeNames')(app);
+  require('./changeEmailAddress')(app);
+  require('./changePassword')(app);
 };
