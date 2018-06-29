@@ -5,9 +5,11 @@ const functions   = require('../functions');
 
 module.exports = (app) =>
 {
-  app.get('/getAllElements', (req, res) =>
+  app.post('/getElementDetails', (req, res) =>
   {
     if(req.headers.authorization == undefined) res.status(406).send({ message: messages.MISSING_TOKEN, detail: null });
+
+    else if(req.body.elementId == undefined) res.status(406).send({ message: messages.MISSING_ID, detail: null });
 
     else
     {
@@ -29,7 +31,7 @@ module.exports = (app) =>
 
                 else
                 {
-                  connection.query(`SELECT * FROM element WHERE USER_ID = ${account.USER_ID}`, (error, result) =>
+                  connection.query(`SELECT * FROM element WHERE ELEMENT_ID = ${req.body.elementId}`, (error, result) =>
                   {
                     if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
 
@@ -37,12 +39,33 @@ module.exports = (app) =>
                     {
                       if(result[0] == undefined)
                       {
-                        res.status(406).send({ message: messages.NO_ELEMENT_FOUND_FOR_ID + account.USER_ID });
+                        res.status(406).send({ message: messages.NO_ELEMENT_FOUND });
                       }
                       else
                       {
-                        var elements = [];
-                        getColorsForEachElement(result, 0, connection, elements, res);
+                        var element = {
+                          elementId: result[0].ELEMENT_ID,
+                          picture: result[0].IMAGE,
+                          type_id: result[0].TYPE_ID,
+                          userId: result[0].USER_ID
+                        };
+
+                        connection.query(`SELECT COLOR_ID FROM element_x_color WHERE ELEMENT_ID = ${req.body.elementId}`, (error, resultColor) =>
+                        {
+                          if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+
+                          else
+                          {
+                            var colors = [];
+                            for (var i = 0; i < resultColor.length; i++) {
+                              colors.push(resultColor[i].COLOR_ID);
+                            }
+
+                            element.colors = colors;
+
+                            res.status(200).send({ element: element });
+                          }
+                        });
                       }
                     }
                   });
@@ -54,36 +77,4 @@ module.exports = (app) =>
       });
     }
   });
-  function getColorsForEachElement(result, index, connection, elements, res)
-  {
-    if(index < result.length)
-    {
-      connection.query(`SELECT COLOR_ID FROM element_x_color WHERE ELEMENT_ID = ${result[index].ELEMENT_ID}`, (error, resultColor) =>
-      {
-        if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
-
-        else
-        {
-          var colors = [];
-          for(var j = 0; j < resultColor.length; j++) {
-            colors.push(resultColor[j].COLOR_ID);
-          }
-
-          elements.push({
-            id: result[index].ELEMENT_ID,
-            image: result[index].IMAGE,
-            type_id: result[index].TYPE_ID,
-            color_id: colors,
-            user_id: result[index].USER_ID
-          });
-          getColorsForEachElement(result, (index+1), connection, elements, res);
-        }
-      });
-    }
-    else
-    {
-      connection.release();
-      res.status(200).send({ elements: elements });
-    }
-  }
 };

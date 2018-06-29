@@ -2,6 +2,8 @@
 
 const messages    = require('../messages');
 const functions   = require('../functions');
+const jwt           = require('jsonwebtoken');
+const params        = require('../params');
 
 module.exports = (app) =>
 {
@@ -31,16 +33,37 @@ module.exports = (app) =>
 
                 else
                 {
-                  connection.query(`UPDATE users set MAIL = "${req.body.email}" where USER_ID = ${account.USER_ID}`, (error, result) =>
+                  if(new RegExp("^[a-zA-Z][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]$").test(req.body.email) == false)
                   {
-                    connection.release();
-                    if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                      res.status(406).send({ message: messages.INCORRECT_EMAIL_ADDRESS_FORMAT, detail: null });
+                  }
 
-                    else
+                  else
+                  {
+                    connection.query(`SELECT * FROM users WHERE MAIL = "${req.body.email}"`, (errorSelect, result) =>
                     {
-                      res.status(201).send({ message: messages.WARDROBE_EMAIL_ADDRESS_CHANGED });
-                    }
-                  });
+                      if(errorSelect) res.status(500).send({ message: messages.DATABASE_ERROR, detail: errorSelect.message });
+
+                      else if(result.length > 0)
+                      {
+                          res.status(406).send({ message: messages.EMAIL_ADDRESS_NOT_AVAILABLE, detail: null });
+                      }
+
+                      else
+                      {
+                        connection.query(`UPDATE users set MAIL = "${req.body.email}" where USER_ID = ${account.USER_ID}`, (errorUpdate, resultUpdate) =>
+                        {
+                          connection.release();
+                          if(errorUpdate) res.status(500).send({ message: messages.DATABASE_ERROR, detail: errorUpdate.message });
+
+                          else
+                          {
+                            createToken(req.body.email, req, res);
+                          }
+                        });
+                      }
+                    });
+                  }
                 }
               });
             }
@@ -49,4 +72,19 @@ module.exports = (app) =>
       });
     }
   });
+
+  function createToken(email, req, res)
+  {
+    jwt.sign({ email: email }, params.secretKey, { expiresIn: (60 * 60 * 24) }, (error, token) =>
+    {
+        if(error) res.status(500).send({ message: messages.TOKEN_CREATION_ERROR, detail: error.message });
+
+        else
+        {
+            res.status(201).send({ token: token,
+                                   message: messages.WARDROBE_EMAIL_ADDRESS_CHANGED
+                                });
+        }
+    });
+  }
 };

@@ -9,4 +9,5 @@ module.exports = (app) =>
   require('./changeNames')(app);
   require('./changeEmailAddress')(app);
   require('./changePassword')(app);
+  require('./getElementDetails')(app);
 };
