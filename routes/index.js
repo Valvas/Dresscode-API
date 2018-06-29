@@ -10,4 +10,6 @@ module.exports = (app) =>
   require('./changeEmailAddress')(app);
   require('./changePassword')(app);
   require('./getElementDetails')(app);
+  require('./addOutfit')(app);
+  require('./getAllOutfits')(app);
 };
