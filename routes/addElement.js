@@ -31,13 +31,23 @@ module.exports = (app) =>
             {
               functions.getAccountFromEmail(email, connection, (error, account) =>
               {
-                if(error != null) res.status(error.status).send({ message: error.message, detail: error.detail });
+                if(error != null)
+                {
+                  connection.release();
+                  
+                  res.status(error.status).send({ message: error.message, detail: error.detail });
+                }
 
                 else
                 {
                   connection.query(`INSERT INTO element (IMAGE, TYPE_ID, USER_ID) VALUES ("${req.body.picture}", ${req.body.type}, ${account.USER_ID})`, (error, result) =>
                   {
-                    if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                    if(error)
+                    {
+                      connection.release();
+                      
+                      res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                    }
 
                     else
                     {
@@ -59,7 +69,12 @@ module.exports = (app) =>
     {
       connection.query(`INSERT INTO element_x_color (ELEMENT_ID, COLOR_ID) VALUES (${elementId}, ${colors[index]})`, (error) =>
       {
-        if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+        if(error)
+        {
+          connection.release();
+          
+          res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+        }
 
         else
         {
