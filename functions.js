@@ -63,7 +63,7 @@ module.exports.checkUuidFormat = (uuidToCheck, callback) =>
 
 module.exports.insertColorsInDatabase = (colorsObject, connection, callback) =>
 {
-  var currentIndex = 1;
+  var currentIndex = 0;
 
   var browseColors = () =>
   {
@@ -104,7 +104,7 @@ module.exports.insertColorsInDatabase = (colorsObject, connection, callback) =>
 
 module.exports.insertTypesInDatabase = (typesObject, connection, callback) =>
 {
-  var currentIndex = 1;
+  var currentIndex = 0;
 
   var browseTypes = () =>
   {
