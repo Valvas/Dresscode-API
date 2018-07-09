@@ -63,7 +63,7 @@ module.exports.checkUuidFormat = (uuidToCheck, callback) =>
 
 module.exports.insertColorsInDatabase = (colorsObject, connection, callback) =>
 {
-  var currentIndex = 0;
+  var currentIndex = 1;
 
   var browseColors = () =>
   {
@@ -73,20 +73,20 @@ module.exports.insertColorsInDatabase = (colorsObject, connection, callback) =>
 
       else if(result.length > 0)
       {
-        Object.keys(colorsObject)[currentIndex += 1] != undefined
+        colorsObject[currentIndex += 1] != undefined
         ? browseColors()
         : callback(null);
       }
 
       else
       {
-        connection.query(`INSERT INTO color (COLOR_ID, NAME) VALUES (${currentIndex}, "${colorsObject[Object.keys(colorsObject)[currentIndex]]}")`, (error, result) =>
+        connection.query(`INSERT INTO color (COLOR_ID, NAME) VALUES (${currentIndex}, "${colorsObject[currentIndex]}")`, (error, result) =>
         {
           if(error) return callback({ message: messages.DATABASE_ERROR, detail: error.message });
 
           else
           {
-            Object.keys(colorsObject)[currentIndex += 1] != undefined
+            colorsObject[currentIndex += 1] != undefined
             ? browseColors()
             : callback(null);
           }
@@ -95,7 +95,7 @@ module.exports.insertColorsInDatabase = (colorsObject, connection, callback) =>
     });
   }
 
-  Object.keys(colorsObject)[currentIndex] != undefined
+  colorsObject[currentIndex] != undefined
   ? browseColors()
   : callback(null);
 }
@@ -104,7 +104,7 @@ module.exports.insertColorsInDatabase = (colorsObject, connection, callback) =>
 
 module.exports.insertTypesInDatabase = (typesObject, connection, callback) =>
 {
-  var currentIndex = 0;
+  var currentIndex = 1;
 
   var browseTypes = () =>
   {
@@ -114,20 +114,20 @@ module.exports.insertTypesInDatabase = (typesObject, connection, callback) =>
 
       else if(result.length > 0)
       {
-        Object.keys(typesObject)[currentIndex += 1] != undefined
+        typesObject[currentIndex += 1] != undefined
         ? browseTypes()
         : callback(null);
       }
 
       else
       {
-        connection.query(`INSERT INTO type (TYPE_ID, NAME) VALUES (${currentIndex}, "${typesObject[Object.keys(typesObject)[currentIndex]]}")`, (error, result) =>
+        connection.query(`INSERT INTO type (TYPE_ID, NAME) VALUES (${currentIndex}, "${typesObject[currentIndex]}")`, (error, result) =>
         {
           if(error) return callback({ message: messages.DATABASE_ERROR, detail: error.message });
 
           else
           {
-            Object.keys(typesObject)[currentIndex += 1] != undefined
+            typesObject[currentIndex += 1] != undefined
             ? browseTypes()
             : callback(null);
           }
@@ -136,7 +136,7 @@ module.exports.insertTypesInDatabase = (typesObject, connection, callback) =>
     });
   }
 
-  Object.keys(typesObject)[currentIndex] != undefined
+  typesObject[currentIndex] != undefined
   ? browseTypes()
   : callback(null);
 }
