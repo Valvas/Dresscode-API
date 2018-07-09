@@ -1,4 +1,19 @@
 {
+    "colors":
+    {
+        "1": "BLACK",
+        "2": "WHITE",
+        "3": "BLUE",
+        "4": "RED",
+        "5": "PINK",
+        "6": "GREEN",
+        "7": "BROWN",
+        "8": "ORANGE",
+        "9": "YELLOW",
+        "10": "PURPLE",
+        "11": "PATTERNED"
+    },
+
     "database":
     {
         "host": "localhost",
@@ -9,5 +24,23 @@
 
     "salt": "$2a$10$Wx.tVVK0PQ.zG8RRmIQo3e",
 
-    "secretKey": "supersecretpassword"
+    "secretKey": "supersecretpassword",
+
+    "types":
+    {
+        "1": "TOP",
+        "2": "SHIRT",
+        "3": "TROUSERS",
+        "4": "SKIRT",
+        "5": "SHORT",
+        "6": "DRESS",
+        "7": "SWIMWEAR",
+        "8": "SPORTSWEAR",
+        "9": "SOCKS",
+        "10": "TIGHTS",
+        "11": "COAT",
+        "12": "SHOES",
+        "13": "BELT",
+        "14": "BAG"
+    }
 }

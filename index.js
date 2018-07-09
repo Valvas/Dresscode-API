@@ -6,6 +6,8 @@ const params          = require('./params');
 const express         = require('express');
 const mysql           = require('mysql');
 
+const functions       = require('./functions');
+
 let app = express();
 
 app.use(cookieParser());
@@ -34,7 +36,31 @@ const pool  = mysql.createPool(
 
 app.set('pool', pool);
 
-app.listen(3000, () => 
+pool.getConnection((error, connection) =>
 {
-  console.log('Server has started port 3000');
+  if(error)
+  {
+    console.log(error.message);
+    process.exit(1);
+  }
+
+  else
+  {
+    functions.insertColorsInDatabase(params.colors, connection, (error) =>
+    {
+      error != null ? process.exit(1) :
+
+      functions.insertTypesInDatabase(params.types, connection, (error) =>
+      {
+        error != null ? process.exit(1) :
+
+        app.listen(3000, () => 
+        {
+          connection.release();
+
+          console.log('Server has started port 3000');
+        });
+      });
+    });
+  }
 });

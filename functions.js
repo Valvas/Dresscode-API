@@ -40,23 +40,105 @@ module.exports.getEmailFromToken = (token, callback) =>
 
 module.exports.getAccountFromEmail = (emailAddress, connection, callback) =>
 {
-    connection.query(`SELECT * FROM users WHERE MAIL = "${emailAddress}"`, (error, result) =>
-    {
-        if(error) return callback({ status: 500, message: messages.DATABASE_ERROR, detail: error.message });
+  connection.query(`SELECT * FROM users WHERE MAIL = "${emailAddress}"`, (error, result) =>
+  {
+    if(error) return callback({ status: 500, message: messages.DATABASE_ERROR, detail: error.message });
 
-        if(result.length == 0) return callback({ status: 406, message: messages.ACCOUNT_DOES_NOT_EXIST, detail: null });
+    if(result.length == 0) return callback({ status: 406, message: messages.ACCOUNT_DOES_NOT_EXIST, detail: null });
 
-        return callback(null, result[0]);
-    });
+    return callback(null, result[0]);
+  });
 }
 
 /****************************************************************************************************/
 
 module.exports.checkUuidFormat = (uuidToCheck, callback) =>
 {
-    return new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$").test(uuidToCheck)
-    ? callback(null)
-    : callback({ status: 406, message: messages.INCORRECT_UUID_FORMAT, detail: null });
+  return new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$").test(uuidToCheck)
+  ? callback(null)
+  : callback({ status: 406, message: messages.INCORRECT_UUID_FORMAT, detail: null });
+}
+
+/****************************************************************************************************/
+
+module.exports.insertColorsInDatabase = (colorsObject, connection, callback) =>
+{
+  var currentIndex = 1;
+
+  var browseColors = () =>
+  {
+    connection.query(`SELECT * FROM color WHERE COLOR_ID = ${currentIndex}`, (error, result) =>
+    {
+      if(error) return callback({ message: messages.DATABASE_ERROR, detail: error.message });
+
+      else if(result.length > 0)
+      {
+        Object.keys(colorsObject)[currentIndex += 1] != undefined
+        ? browseColors()
+        : callback(null);
+      }
+
+      else
+      {
+        connection.query(`INSERT INTO color (COLOR_ID, NAME) VALUES (${currentIndex}, "${colorsObject[Object.keys(colorsObject)[currentIndex]]}")`, (error, result) =>
+        {
+          if(error) return callback({ message: messages.DATABASE_ERROR, detail: error.message });
+
+          else
+          {
+            Object.keys(colorsObject)[currentIndex += 1] != undefined
+            ? browseColors()
+            : callback(null);
+          }
+        });
+      }
+    });
+  }
+
+  Object.keys(colorsObject)[currentIndex] != undefined
+  ? browseColors()
+  : callback(null);
+}
+
+/****************************************************************************************************/
+
+module.exports.insertTypesInDatabase = (typesObject, connection, callback) =>
+{
+  var currentIndex = 1;
+
+  var browseTypes = () =>
+  {
+    connection.query(`SELECT * FROM type WHERE TYPE_ID = ${currentIndex}`, (error, result) =>
+    {
+      if(error) return callback({ message: messages.DATABASE_ERROR, detail: error.message });
+
+      else if(result.length > 0)
+      {
+        Object.keys(typesObject)[currentIndex += 1] != undefined
+        ? browseTypes()
+        : callback(null);
+      }
+
+      else
+      {
+        connection.query(`INSERT INTO type (TYPE_ID, NAME) VALUES (${currentIndex}, "${typesObject[Object.keys(typesObject)[currentIndex]]}")`, (error, result) =>
+        {
+          if(error) return callback({ message: messages.DATABASE_ERROR, detail: error.message });
+
+          else
+          {
+            Object.keys(typesObject)[currentIndex += 1] != undefined
+            ? browseTypes()
+            : callback(null);
+          }
+        });
+      }
+    });
+  }
+
+  Object.keys(typesObject)[currentIndex] != undefined
+  ? browseTypes()
+  : callback(null);
 }
 
 /****************************************************************************************************/
