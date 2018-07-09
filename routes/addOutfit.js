@@ -31,21 +31,29 @@ module.exports = (app) =>
             {
               functions.getAccountFromEmail(email, connection, (error, account) =>
               {
-                if(error != null) res.status(error.status).send({ message: error.message, detail: error.detail });
+                if(error != null)
+                {
+                  connection.release();
+
+                  res.status(error.status).send({ message: error.message, detail: error.detail });
+                }
 
                 else
                 {
-
                   var elements = req.body.elements;
 
                   connection.query(`INSERT INTO outfit (NAME, USER_ID) VALUES ("${req.body.name}", ${account.USER_ID})`, (error, result) =>
                   {
-                    if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                    if(error)
+                    {
+                      connection.release();
+
+                      res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                    }
 
                     else
                     {
                       addEachElementOfOutfit(elements, 0, result.insertId, connection, res);
-
                     }
                   });
                 }
@@ -57,12 +65,18 @@ module.exports = (app) =>
     }
   });
 
-  function addEachElementOfOutfit(elements, index, insertedId, connection, res) {
+  function addEachElementOfOutfit(elements, index, insertedId, connection, res) 
+  {
     if(index < elements.length)
     {
       connection.query(`INSERT INTO outfit_x_element (OUTFIT_ID, ELEMENT_ID) VALUES ("${insertedId}", ${elements[index]})`, (error, result) =>
       {
-        if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+        if(error)
+        {
+          connection.release();
+
+          res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+        }
 
         else
         {
@@ -70,6 +84,7 @@ module.exports = (app) =>
         }
       });
     }
+    
     else
     {
       connection.release();

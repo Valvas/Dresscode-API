@@ -1,5 +1,6 @@
 'use strict'
 
+const UUIDModule  = require('uuid/v4');
 const messages    = require('../messages');
 const functions   = require('../functions');
 
@@ -40,20 +41,15 @@ module.exports = (app) =>
 
                 else
                 {
-                  connection.query(`INSERT INTO element (IMAGE, TYPE_ID, USER_ID) VALUES ("${req.body.picture}", ${req.body.type}, ${account.USER_ID})`, (error, result) =>
+                  if(req.body.uuid != undefined)
                   {
-                    if(error)
-                    {
-                      connection.release();
-                      
-                      res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
-                    }
+                    createNewElementFromProvidedUuid(req.body.picture, req.body.type, req.body.color, account.USER_ID, req.body.uuid, connection, res);
+                  }
 
-                    else
-                    {
-                      insertColorsOfElement(connection, result.insertId, req.body.color, 0, res);
-                    }
-                  });
+                  else
+                  {
+                    createNewElementFromScratch(req.body.picture, req.body.type, req.body.color, account.USER_ID, connection, res);
+                  }
                 }
               });
             }
@@ -62,6 +58,8 @@ module.exports = (app) =>
       });
     }
   });
+
+  /****************************************************************************************************/
 
   function insertColorsOfElement(connection, elementId, colors, index, res)
   {
@@ -88,4 +86,85 @@ module.exports = (app) =>
         res.status(201).send({ message: messages.WARDROBE_ELEMENT_ADDED });
     }
   }
+
+  /****************************************************************************************************/
+
+  // NO UUID PROVIDED IN THE REQUEST. CREATE A NEW ONE AND ADD A NEW ENTRY IN DATABASE.
+
+  function createNewElementFromScratch(picture, type, colors, accountId, connection, res)
+  {
+    const uuid = UUIDModule.v4();
+
+    connection.query(`INSERT INTO element (IMAGE, TYPE_ID, USER_ID, UUID) VALUES ("${picture}", ${type}, ${accountId}, "${uuid}")`, (error, result) =>
+    {
+      if(error)
+      {
+        connection.release();
+        
+        res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+      }
+
+      else
+      {
+        insertColorsOfElement(connection, result.insertId, colors, 0, res);
+      }
+    });
+  }
+
+  /****************************************************************************************************/
+  
+  // UUID PROVIDED IN THE REQUEST. CREATE A NEW ELEMENT IF NO EXISTS USING THE UUID PROVIDED.
+
+  function createNewElementFromProvidedUuid(picture, type, colors, accountId, providedUuid, connection, res)
+  {
+    functions.checkUuidFormat(providedUuid, (error) =>
+    {
+      if(error != null)
+      {
+        connection.release();
+
+        res.status(error.status).send({ message: error.message, detail: error.detail });
+      }
+
+      else
+      {
+        connection.query(`SELECT * FROM element WHERE UUID = "${providedUuid}"`, (error, result) =>
+        {
+          if(error)
+          {
+            connection.release();
+
+            res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+          }
+
+          else if(result.length > 0)
+          {
+            connection.release();
+
+            res.status(201).send({ message: messages.WARDROBE_ELEMENT_ADDED });
+          }
+
+          else
+          {
+            connection.query(`INSERT INTO element (IMAGE, TYPE_ID, USER_ID, UUID) VALUES ("${picture}", ${type}, ${accountId}, "${providedUuid}")`, (error, result) =>
+            {
+              if(error)
+              {
+                connection.release();
+                
+                res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+              }
+
+              else
+              {
+                insertColorsOfElement(connection, result.insertId, colors, 0, res);
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  /****************************************************************************************************/
 };

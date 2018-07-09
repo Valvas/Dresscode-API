@@ -30,5 +30,6 @@
   "MISSING_ELEMENTS": "Les éléments de la tenue sont manquants",
   "AMOUNT_OF_ELEMENTS_RECQUIRED": "Il faut au moins deux éléments par tenue",
   "WARDROBE_OUTFIT_ADDED": "La tenue a été enregistrée",
-  "NO_OUTFIT_FOUND_FOR_ID": "Aucune tenue trouvée pour l'id "
+  "NO_OUTFIT_FOUND_FOR_ID": "Aucune tenue trouvée pour l'id",
+  "INCORRECT_UUID_FORMAT": "Format de l'UUID incorrect"
 }

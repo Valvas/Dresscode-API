@@ -5,6 +5,7 @@ const messages  = require('./messages');
 const jwt       = require('jsonwebtoken');
 
 /****************************************************************************************************/
+
 module.exports.obtainNewToken = (token, callback) =>
 {
     jwt.verify(token, params.secretKey, (error, decoded) =>
@@ -47,6 +48,15 @@ module.exports.getAccountFromEmail = (emailAddress, connection, callback) =>
 
         return callback(null, result[0]);
     });
+}
+
+/****************************************************************************************************/
+
+module.exports.checkUuidFormat = (uuidToCheck, callback) =>
+{
+    return new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$").test(uuidToCheck)
+    ? callback(null)
+    : callback({ status: 406, message: messages.INCORRECT_UUID_FORMAT, detail: null });
 }
 
 /****************************************************************************************************/
