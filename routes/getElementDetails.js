@@ -33,12 +33,19 @@ module.exports = (app) =>
                 {
                   connection.query(`SELECT * FROM element WHERE ELEMENT_ID = ${req.body.elementId}`, (error, result) =>
                   {
-                    if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                    if(error)
+                    {
+                      connection.release();
+
+                      res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                    }
 
                     else
                     {
                       if(result[0] == undefined)
                       {
+                        connection.release();
+
                         res.status(406).send({ message: messages.NO_ELEMENT_FOUND });
                       }
                       else
@@ -51,7 +58,12 @@ module.exports = (app) =>
 
                         connection.query(`SELECT COLOR_ID FROM element_x_color WHERE ELEMENT_ID = ${req.body.elementId}`, (error, resultColor) =>
                         {
-                          if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                          if(error)
+                          {
+                            connection.release();
+
+                            res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                          }
 
                           else
                           {
@@ -61,6 +73,8 @@ module.exports = (app) =>
                             }
 
                             element.color = colors;
+
+                            connection.release();
 
                             res.status(200).send({ element: element });
                           }

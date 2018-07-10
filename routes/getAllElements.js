@@ -31,12 +31,19 @@ module.exports = (app) =>
                 {
                   connection.query(`SELECT * FROM element WHERE USER_ID = ${account.USER_ID}`, (error, result) =>
                   {
-                    if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                    if(error)
+                    {
+                      connection.release();
+
+                      res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                    }
 
                     else
                     {
                       if(result[0] == undefined)
                       {
+                        connection.release();
+
                         res.status(406).send({ message: messages.NO_ELEMENT_FOUND_FOR_ID });
                       }
                       else
@@ -60,7 +67,12 @@ module.exports = (app) =>
     {
       connection.query(`SELECT COLOR_ID FROM element_x_color WHERE ELEMENT_ID = ${result[index].ELEMENT_ID}`, (error, resultColor) =>
       {
-        if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+        if(error)
+        {
+          connection.release();
+
+          res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+        }
 
         else
         {
