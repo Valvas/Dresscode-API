@@ -37,7 +37,7 @@ module.exports = (app) =>
                     {
                       if(result[0] == undefined)
                       {
-                        res.status(406).send({ message: messages.NO_OUTFIT_FOUND_FOR_ID + account.USER_ID });
+                        res.status(406).send({ message: messages.NO_OUTFIT_FOUND_FOR_ID });
                       }
                       else
                       {

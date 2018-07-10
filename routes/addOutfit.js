@@ -1,5 +1,6 @@
 'use strict'
 
+const UUIDModule  = require('uuid/v4');
 const messages    = require('../messages');
 const functions   = require('../functions');
 
@@ -40,20 +41,34 @@ module.exports = (app) =>
 
                 else
                 {
-                  var elements = req.body.elements;
-
-                  connection.query(`INSERT INTO outfit (NAME, USER_ID) VALUES ("${req.body.name}", ${account.USER_ID})`, (error, result) =>
+                  connection.query(`SELECT * FROM outfit WHERE NAME = "${(req.body.name).toLowerCase()}" AND USER_ID = "${account.USER_ID}"`, (error, result) =>
                   {
-                    if(error)
+                    if(result[0] != undefined)
                     {
                       connection.release();
 
-                      res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                      res.status(406).send({ message: messages.NAME_ALREADY_USED, detail: null });
                     }
-
                     else
                     {
-                      addEachElementOfOutfit(elements, 0, result.insertId, connection, res);
+                      var elements = req.body.elements;
+
+                      const uuid = UUIDModule();
+
+                      connection.query(`INSERT INTO outfit (NAME, USER_ID, UUID) VALUES ("${(req.body.name).toLowerCase()}", ${account.USER_ID}, "${uuid}")`, (error, result) =>
+                      {
+                        if(error)
+                        {
+                          connection.release();
+
+                          res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+                        }
+
+                        else
+                        {
+                          addEachElementOfOutfit(elements, 0, result.insertId, connection, res, account);
+                        }
+                      });
                     }
                   });
                 }
@@ -65,11 +80,69 @@ module.exports = (app) =>
     }
   });
 
-  function addEachElementOfOutfit(elements, index, insertedId, connection, res) 
+  function addEachElementOfOutfit(elements, index, outfitId, connection, res, account)
   {
     if(index < elements.length)
     {
-      connection.query(`INSERT INTO outfit_x_element (OUTFIT_ID, ELEMENT_ID) VALUES ("${insertedId}", ${elements[index]})`, (error, result) =>
+      createElementIfNotExists(elements, index, outfitId, connection, account, res);
+    }
+
+    else
+    {
+      connection.release();
+      res.status(201).send({ message: messages.WARDROBE_OUTFIT_ADDED });
+    }
+  }
+
+  function createElementIfNotExists(elements, index, outfitId, connection, account, res)
+  {
+    connection.query(`SELECT * FROM element WHERE UUID = "${elements[index].uuid}"`, (error, result) =>
+    {
+      if(error)
+      {
+        connection.release();
+
+        res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+      }
+      else
+      {
+        if(result[0] == undefined)
+        {
+          createNewElementFromScratch(elements, index, outfitId, account, connection, res);
+        }
+        else
+        {
+          addOneElementOfOutfit(elements, index, outfitId, connection, res, account, result[0].ELEMENT_ID);
+        }
+      }
+    });
+  }
+
+  function createNewElementFromScratch(elements, index, outfitId, account, connection, res)
+  {
+    const uuid = UUIDModule();
+
+    connection.query(`INSERT INTO element (IMAGE, TYPE_ID, USER_ID, UUID) VALUES ("${elements[index].picture}", ${elements[index].type}, ${account.USER_ID}, "${uuid}")`, (error, result) =>
+    {
+      if(error)
+      {
+        connection.release();
+
+        res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+      }
+
+      else
+      {
+        insertColorsOfElement(elements, index, connection, result.insertId, elements[index].color, 0, res, outfitId, account);
+      }
+    });
+  }
+
+  function insertColorsOfElement(elements, elementIndex, connection, elementId, colors, index, res, outfitId, account)
+  {
+    if(index < colors.length)
+    {
+      connection.query(`INSERT INTO element_x_color (ELEMENT_ID, COLOR_ID) VALUES (${elementId}, ${colors[index]})`, (error) =>
       {
         if(error)
         {
@@ -80,15 +153,32 @@ module.exports = (app) =>
 
         else
         {
-          addEachElementOfOutfit(elements, (index+1), insertedId, connection, res);
+          insertColorsOfElement(elements, elementIndex, connection, elementId, colors, (index+1), res, outfitId, account);
         }
       });
     }
-    
     else
     {
-      connection.release();
-      res.status(201).send({ message: messages.WARDROBE_OUTFIT_ADDED });
+      addOneElementOfOutfit(elements, elementIndex, outfitId, connection, res, account, elementId);
     }
   }
+
+  function addOneElementOfOutfit(elements, index, outfitId, connection, res, account, elementId)
+  {
+    connection.query(`INSERT INTO outfit_x_element (OUTFIT_ID, ELEMENT_ID) VALUES ("${outfitId}", ${elementId})`, (error, result) =>
+    {
+      if(error)
+      {
+        connection.release();
+
+        res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+      }
+
+      else
+      {
+        addEachElementOfOutfit(elements, (index+1), outfitId, connection, res, account);
+      }
+    });
+  }
+
 };

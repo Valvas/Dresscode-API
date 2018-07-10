@@ -11,8 +11,8 @@ const functions       = require('./functions');
 let app = express();
 
 app.use(cookieParser());
-app.use(bodyParser.json({ limit: '5mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json({ limit: '5mb' }));
 
 app.use((req, res, next) =>
 {
@@ -54,7 +54,7 @@ pool.getConnection((error, connection) =>
       {
         error != null ? process.exit(1) :
 
-        app.listen(3000, () => 
+        app.listen(3000, () =>
         {
           connection.release();
 

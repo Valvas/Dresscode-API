@@ -16,7 +16,7 @@
   "MISSING_PICTURE": "La photo du vêtement est manquante dans la requête",
   "ACCOUNT_DOES_NOT_EXIST": "Ce compte n'existe pas",
   "WARDROBE_ELEMENT_ADDED": "L'élement a été enregistré",
-  "NO_ELEMENT_FOUND_FOR_ID": "Aucun élément trouvé pour l'id ",
+  "NO_ELEMENT_FOUND_FOR_ID": "Vous n'avez aucun élément sauvegardé",
   "MISSING_ID": "L'id du vêtement est manquant dans la requête",
   "WARDROBE_ELEMENT_DELETED": "L'élément a bien été supprimé",
   "WARDROBE_NAMES_CHANGED": "Vos nom et prénom ont bien été changés",
@@ -30,6 +30,7 @@
   "MISSING_ELEMENTS": "Les éléments de la tenue sont manquants",
   "AMOUNT_OF_ELEMENTS_RECQUIRED": "Il faut au moins deux éléments par tenue",
   "WARDROBE_OUTFIT_ADDED": "La tenue a été enregistrée",
-  "NO_OUTFIT_FOUND_FOR_ID": "Aucune tenue trouvée pour l'id",
-  "INCORRECT_UUID_FORMAT": "Format de l'UUID incorrect"
+  "NO_OUTFIT_FOUND_FOR_ID": "Vous n'avez aucune tenue sauvegardée",
+  "INCORRECT_UUID_FORMAT": "Format de l'UUID incorrect",
+  "NAME_ALREADY_USED": "Ce nom de tenue est déjà utilisé"
 }

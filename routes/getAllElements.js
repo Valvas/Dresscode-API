@@ -37,7 +37,7 @@ module.exports = (app) =>
                     {
                       if(result[0] == undefined)
                       {
-                        res.status(406).send({ message: messages.NO_ELEMENT_FOUND_FOR_ID + account.USER_ID });
+                        res.status(406).send({ message: messages.NO_ELEMENT_FOUND_FOR_ID });
                       }
                       else
                       {
@@ -70,11 +70,10 @@ module.exports = (app) =>
           }
 
           elements.push({
-            id: result[index].ELEMENT_ID,
-            image: result[index].IMAGE,
-            type_id: result[index].TYPE_ID,
-            color_id: colors,
-            user_id: result[index].USER_ID
+            uuid: result[index].UUID,
+            picture: result[index].IMAGE,
+            type: result[index].TYPE_ID,
+            color: colors
           });
           getColorsForEachElement(result, (index+1), connection, elements, res);
         }

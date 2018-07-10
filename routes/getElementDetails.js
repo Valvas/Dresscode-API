@@ -44,10 +44,9 @@ module.exports = (app) =>
                       else
                       {
                         var element = {
-                          elementId: result[0].ELEMENT_ID,
+                          uuid: result[0].UUID,
                           picture: result[0].IMAGE,
-                          type_id: result[0].TYPE_ID,
-                          userId: result[0].USER_ID
+                          type: result[0].TYPE_ID
                         };
 
                         connection.query(`SELECT COLOR_ID FROM element_x_color WHERE ELEMENT_ID = ${req.body.elementId}`, (error, resultColor) =>
@@ -61,7 +60,7 @@ module.exports = (app) =>
                               colors.push(resultColor[i].COLOR_ID);
                             }
 
-                            element.colors = colors;
+                            element.color = colors;
 
                             res.status(200).send({ element: element });
                           }

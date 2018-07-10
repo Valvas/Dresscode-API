@@ -35,7 +35,7 @@ module.exports = (app) =>
                 if(error != null)
                 {
                   connection.release();
-                  
+
                   res.status(error.status).send({ message: error.message, detail: error.detail });
                 }
 
@@ -70,7 +70,7 @@ module.exports = (app) =>
         if(error)
         {
           connection.release();
-          
+
           res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
         }
 
@@ -93,14 +93,14 @@ module.exports = (app) =>
 
   function createNewElementFromScratch(picture, type, colors, accountId, connection, res)
   {
-    const uuid = UUIDModule.v4();
+    const uuid = UUIDModule();
 
     connection.query(`INSERT INTO element (IMAGE, TYPE_ID, USER_ID, UUID) VALUES ("${picture}", ${type}, ${accountId}, "${uuid}")`, (error, result) =>
     {
       if(error)
       {
         connection.release();
-        
+
         res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
       }
 
@@ -110,9 +110,9 @@ module.exports = (app) =>
       }
     });
   }
-  
+
   /****************************************************************************************************/
-  
+
   // UUID PROVIDED IN THE REQUEST. CREATE A NEW ELEMENT IF NO EXISTS USING THE UUID PROVIDED.
 
   function createNewElementFromProvidedUuid(picture, type, colors, accountId, providedUuid, connection, res)
@@ -151,7 +151,7 @@ module.exports = (app) =>
               if(error)
               {
                 connection.release();
-                
+
                 res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
               }
 

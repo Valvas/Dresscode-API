@@ -10,5 +10,7 @@
   "changeNames": "POST : authorization -- firstname -- lastname",
   "changeEmailAddress": "POST : authorization -- email",
   "changePassword": "POST : authorization -- oldPassword -- newPassword",
-  "getElementDetails": "POST : authorization -- elementId"
+  "getElementDetails": "POST : authorization -- elementId",
+  "addOutfit": "POST : authorization -- name -- elements",
+  "getAllOutfits": "GET : authorization"
 }
