@@ -9,7 +9,7 @@ module.exports = (app) =>
   {
     if(req.headers.authorization == undefined) res.status(406).send({ message: messages.MISSING_TOKEN, detail: null });
 
-    else if(req.body.elementId == undefined) res.status(406).send({ message: messages.MISSING_ID, detail: null });
+    else if(req.body.uuid == undefined) res.status(406).send({ message: messages.MISSING_UUID, detail: null });
 
     else
     {
@@ -27,20 +27,16 @@ module.exports = (app) =>
             {
               functions.getAccountFromEmail(email, connection, (error, account) =>
               {
-                if(error != null) res.status(error.status).send({ message: error.message, detail: error.detail });
+                if(error != null)
+                {
+                  connection.release();
+
+                  res.status(error.status).send({ message: error.message, detail: error.detail });
+                }
 
                 else
                 {
-                  connection.query(`DELETE FROM element WHERE USER_ID = ${account.USER_ID} and ELEMENT_ID = ${req.body.elementId}`, (error) =>
-                  {
-                    connection.release();
-                    if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
-
-                    else
-                    {
-                      res.status(201).send({ message: messages.WARDROBE_ELEMENT_DELETED })
-                    }
-                  });
+                  checkIfElementExists(req.body.uuid, account.USER_ID, connection, res);
                 }
               });
             }
@@ -49,4 +45,77 @@ module.exports = (app) =>
       });
     }
   });
+
+  /****************************************************************************************************/
+
+  function checkIfElementExists(elementUuid, accountId, connection, res)
+  {
+    connection.query(`SELECT * FROM element WHERE UUID = "${elementUuid}"`, (error, result) =>
+    {
+      if(error)
+      {
+        connection.release();
+
+        res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+      }
+
+      else if(result.length == 0)
+      {
+        connection.release();
+
+        res.status(200).send({ message: messages.WARDROBE_ELEMENT_DELETED });
+      }
+
+      else
+      {
+        removeColorsOfElement(result[0].ELEMENT_ID, accountId, connection, res);
+      }
+    });
+  }
+
+  /****************************************************************************************************/
+
+  function removeColorsOfElement(elementId, accountId, connection, res)
+  {
+    connection.query(`DELETE FROM element_x_color WHERE ELEMENT_ID = ${elementId}`, (error, result) =>
+    {
+      if(error)
+      {
+        connection.release();
+
+        res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+      }
+
+      else if(result.affectedRows == 0)
+      {
+        connection.release();
+
+        res.status(500).send({ message: messages.DATABASE_ERROR, detail: 'Colors could not be deleted for current element' });
+      }
+
+      else
+      {
+        removeElementFromDatabase(elementId, accountId, connection, res);
+      }
+    });
+  }
+
+  /****************************************************************************************************/
+
+  function removeElementFromDatabase(elementId, accountId, connection, res)
+  {
+    connection.query(`DELETE FROM element WHERE ELEMENT_ID = ${elementId}`, (error, result) =>
+    {
+      connection.release();
+
+      if(error) res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+
+      else
+      {
+        res.status(200).send({ message: messages.WARDROBE_ELEMENT_DELETED });
+      }
+    });
+  }
+
+  /****************************************************************************************************/
 };
