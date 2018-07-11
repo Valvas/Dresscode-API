@@ -11,7 +11,7 @@ const functions       = require('./functions');
 let app = express();
 
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
 app.use(bodyParser.json({ limit: '5mb' }));
 
 app.use((req, res, next) =>
