@@ -40,15 +40,15 @@ module.exports = (app) =>
 
                     else
                     {
+                      var elements = [];
                       if(result[0] == undefined)
                       {
                         connection.release();
 
-                        res.status(406).send({ message: messages.NO_ELEMENT_FOUND_FOR_ID });
+                        res.status(200).send({ elements: elements });
                       }
                       else
                       {
-                        var elements = [];
                         getColorsForEachElement(result, 0, connection, elements, res);
                       }
                     }

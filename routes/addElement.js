@@ -139,9 +139,23 @@ module.exports = (app) =>
 
           else if(result.length > 0)
           {
-            connection.release();
+            var elementId = result[0].ELEMENT_ID;
+            connection.query(`UPDATE element SET IMAGE = "${picture}", TYPE_ID = ${type} WHERE ELEMENT_ID = ${elementId} and USER_ID = ${accountId} and UUID = "${providedUuid}"`, (error, result) =>
+            {
+              if(error)
+              {
+                connection.release();
 
-            res.status(201).send({ message: messages.WARDROBE_ELEMENT_ADDED });
+                res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+              }
+              else
+              {
+                connection.query(`DELETE FROM element_x_color WHERE ELEMENT_ID = ${elementId}`, (error, result) =>
+                {
+                  insertColorsOfElement(connection, elementId, colors, 0, res);
+                });
+              }
+            });
           }
 
           else

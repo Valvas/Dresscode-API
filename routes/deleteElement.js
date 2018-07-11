@@ -95,6 +95,26 @@ module.exports = (app) =>
 
       else
       {
+        removeElementFromOutfit(elementId, accountId, connection, res);
+      }
+    });
+  }
+
+  /****************************************************************************************************/
+
+  function removeElementFromOutfit(elementId, accountId, connection, res)
+  {
+    connection.query(`DELETE FROM outfit_x_element WHERE ELEMENT_ID = ${elementId}`, (error, result) =>
+    {
+      if(error)
+      {
+        connection.release();
+
+        res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+      }
+
+      else
+      {
         removeElementFromDatabase(elementId, accountId, connection, res);
       }
     });
