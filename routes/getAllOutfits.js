@@ -40,15 +40,15 @@ module.exports = (app) =>
 
                     else
                     {
+                      var outfits = [];
                       if(result[0] == undefined)
                       {
                         connection.release();
 
-                        res.status(406).send({ message: messages.NO_OUTFIT_FOUND_FOR_ID });
+                        res.status(200).send({ outfits: outfits });
                       }
                       else
                       {
-                        var outfits = [];
                         getElementsForEachOutfit(result, 0, connection, outfits, res);
                       }
                     }
