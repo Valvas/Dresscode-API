@@ -110,11 +110,11 @@ module.exports = (app) =>
           }
 
           elements.push({
-            id: elementsDetails[index].id,
-            image: elementsDetails[index].picture,
-            type_id: elementsDetails[index].typeId,
-            color_id: colors,
-            user_id: elementsDetails[index].userId
+            uuid: elementsDetails[index].uuid,
+            picture: elementsDetails[index].picture,
+            type: elementsDetails[index].typeId,
+            color: colors,
+            //user_id: elementsDetails[index].userId
           });
           getColorsForEachElement(elementsDetails, (index+1), connection, elements, resultOutfit, indexOutfit, outfits, res);
         }
@@ -123,9 +123,9 @@ module.exports = (app) =>
     else
     {
       outfits.push({
-        id: resultOutfit[indexOutfit].OUTFIT_ID,
+        uuid: resultOutfit[indexOutfit].UUID,
         name: resultOutfit[indexOutfit].NAME,
-        userId: resultOutfit[indexOutfit].USER_ID,
+        //userId: resultOutfit[indexOutfit].USER_ID,
         elements : elements
       });
 
@@ -150,6 +150,7 @@ module.exports = (app) =>
         {
             elementsDetails.push({
               id: result[0].ELEMENT_ID,
+              uuid: result[0].UUID,
               picture: result[0].IMAGE,
               typeId: result[0].TYPE_ID,
               userId: result[0].USER_ID

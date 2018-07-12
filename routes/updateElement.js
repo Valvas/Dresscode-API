@@ -16,6 +16,8 @@ module.exports = (app) =>
 
     else if(req.body.picture == undefined) res.status(406).send({ message: messages.MISSING_PICTURE, detail: null });
 
+    else if(req.body.uuid == undefined) res.status(406).send({ message: messages.MISSING_UUID, detail: null });
+
     else
     {
       functions.getEmailFromToken(req.headers.authorization, (error, email) =>
@@ -41,15 +43,7 @@ module.exports = (app) =>
 
                 else
                 {
-                  if(req.body.uuid != undefined)
-                  {
-                    createNewElementFromProvidedUuid(req.body.picture, req.body.type, req.body.color, account.USER_ID, req.body.uuid, connection, res);
-                  }
-
-                  else
-                  {
-                    createNewElementFromScratch(req.body.picture, req.body.type, req.body.color, account.USER_ID, connection, res);
-                  }
+                  checkIfElementExists(req.body.type, req.body.picture, req.body.color, req.body.uuid, account.USER_ID, connection, res)
                 }
               });
             }
@@ -58,6 +52,74 @@ module.exports = (app) =>
       });
     }
   });
+
+  /****************************************************************************************************/
+
+  function checkIfElementExists(type, picture, colors, elementUuid, accountId, connection, res)
+  {
+    connection.query(`SELECT * FROM element WHERE UUID = "${elementUuid}"`, (error, result) =>
+    {
+      if(error)
+      {
+        connection.release();
+
+        res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+      }
+
+      else if(result.length == 0)
+      {
+        createNewElementFromProvidedUuid(picture, type, colors, accountId, elementUuid, connection, res)
+      }
+
+      else
+      {
+        updateElementFromProvidedUuid(picture, type, colors, accountId, elementUuid, connection, res, result[0].ELEMENT_ID);
+      }
+    });
+  }
+
+  /****************************************************************************************************/
+
+  function updateElementFromProvidedUuid(picture, type, colors, accountId, elementUuid, connection, res, elementId)
+  {
+    functions.checkUuidFormat(elementUuid, (error) =>
+    {
+      if(error != null)
+      {
+        connection.release();
+
+        res.status(error.status).send({ message: error.message, detail: error.detail });
+      }
+      else
+      {
+        connection.query(`UPDATE element set IMAGE = "${picture}", TYPE_ID = ${type} WHERE UUID = "${elementUuid}" and USER_ID = ${accountId}`, (error) =>
+        {
+          if(error)
+          {
+            connection.release();
+
+            res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+          }
+          else
+          {
+            connection.query(`DELETE FROM element_x_color WHERE ELEMENT_ID = ${elementId}`, (error, result) =>
+            {
+              if(error)
+              {
+                connection.release();
+
+                res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+              }
+              else
+              {
+                insertColorsOfElement(connection, elementId, colors, 0, res);
+              }
+            });
+          }
+        });
+      }
+    });
+  }
 
   /****************************************************************************************************/
 
@@ -83,32 +145,8 @@ module.exports = (app) =>
     else
     {
         connection.release();
-        res.status(201).send({ message: messages.WARDROBE_ELEMENT_ADDED });
+        res.status(201).send({ message: messages.WARDROBE_ELEMENT_UPDATED });
     }
-  }
-
-  /****************************************************************************************************/
-
-  // NO UUID PROVIDED IN THE REQUEST. CREATE A NEW ONE AND ADD A NEW ENTRY IN DATABASE.
-
-  function createNewElementFromScratch(picture, type, colors, accountId, connection, res)
-  {
-    const uuid = UUIDModule.v4();
-
-    connection.query(`INSERT INTO element (IMAGE, TYPE_ID, USER_ID, UUID) VALUES ("${picture}", ${type}, ${accountId}, "${uuid}")`, (error, result) =>
-    {
-      if(error)
-      {
-        connection.release();
-
-        res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
-      }
-
-      else
-      {
-        insertColorsOfElement(connection, result.insertId, colors, 0, res);
-      }
-    });
   }
 
   /****************************************************************************************************/
@@ -128,7 +166,7 @@ module.exports = (app) =>
 
       else
       {
-        connection.query(`SELECT * FROM element WHERE UUID = "${providedUuid}"`, (error, result) =>
+        connection.query(`INSERT INTO element (IMAGE, TYPE_ID, USER_ID, UUID) VALUES ("${picture}", ${type}, ${accountId}, "${providedUuid}")`, (error, result) =>
         {
           if(error)
           {
@@ -137,29 +175,9 @@ module.exports = (app) =>
             res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
           }
 
-          else if(result.length > 0)
-          {
-            connection.release();
-
-            res.status(201).send({ message: messages.WARDROBE_ELEMENT_ADDED });
-          }
-
           else
           {
-            connection.query(`INSERT INTO element (IMAGE, TYPE_ID, USER_ID, UUID) VALUES ("${picture}", ${type}, ${accountId}, "${providedUuid}")`, (error, result) =>
-            {
-              if(error)
-              {
-                connection.release();
-
-                res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
-              }
-
-              else
-              {
-                insertColorsOfElement(connection, result.insertId, colors, 0, res);
-              }
-            });
+            insertColorsOfElement(connection, result.insertId, colors, 0, res);
           }
         });
       }
