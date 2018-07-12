@@ -33,5 +33,6 @@
   "WARDROBE_OUTFIT_ADDED": "La tenue a été enregistrée",
   "NO_OUTFIT_FOUND_FOR_ID": "Vous n'avez aucune tenue sauvegardée",
   "INCORRECT_UUID_FORMAT": "Format de l'UUID incorrect",
-  "NAME_ALREADY_USED": "Ce nom de tenue est déjà utilisé"
+  "NAME_ALREADY_USED": "Ce nom de tenue est déjà utilisé",
+  "WARDROBE_ELEMENT_UPDATED": "L'élément a bien été mis à jour"
 }
