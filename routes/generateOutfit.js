@@ -168,21 +168,37 @@ module.exports = (app) =>
 
   function generateOutfit(elements, index, res, types, generatedElements, elementsUsed)
   {
-    if(index < (types.length))
+    if(index < (types.length - 1))
     {
       var elementIndex = getRandomInt(elements.length);
 
-      if( elementsUsed.includes(elementIndex) && generatedElements.some(e => e.type === elements[elementIndex].type) )
+      if( (elementsUsed.length < elements.length) )
       {
-        generateOutfit(elements, index, res, types, generatedElements, elementsUsed);
+        if(generatedElements.some(e => e.type === elements[elementIndex].type) )
+        {
+          if( elementsUsed.includes(elementIndex) )
+          {
+            generateOutfit(elements, index, res, types, generatedElements, elementsUsed);
+          }
+          else
+          {
+            elementsUsed.push(elementIndex);
+
+            generateOutfit(elements, index, res, types, generatedElements, elementsUsed);
+          }
+        }
+        else
+        {
+          generatedElements.push(elements[elementIndex]);
+
+          elementsUsed.push(elementIndex);
+
+          generateOutfit(elements, (index+1), res, types, generatedElements, elementsUsed);
+        }
       }
       else
       {
-        generatedElements.push(elements[elementIndex]);
-
-        elementsUsed.push(elementIndex);
-
-        generateOutfit(elements, (index+1), res, types, generatedElements, elementsUsed);
+        res.status(200).send({ elements: generatedElements });
       }
     }
     else
