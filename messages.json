@@ -27,6 +27,7 @@
   "INCORECT_OLD_PASSWORD": "L'ancien mot de passe est incorrect",
   "WARDROBE_PASSWORD_CHANGED": "Votre mot de passe a bien été changé",
   "NO_ELEMENT_FOUND": "Cet élément n'existe plus",
+  "NO_OUTFIT_FOUND": "Cette tenue n'existe plus",
   "MISSING_OUTFIT_NAME": "Le nom de la tenue est manquant",
   "MISSING_ELEMENTS": "Les éléments de la tenue sont manquants",
   "AMOUNT_OF_ELEMENTS_RECQUIRED": "Il faut au moins deux éléments par tenue",

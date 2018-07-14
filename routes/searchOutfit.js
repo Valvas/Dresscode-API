@@ -94,7 +94,7 @@ module.exports = (app) =>
   function putTypeOfElementInString(outfitName, elements, elementIndex, colorsStr, type, typesStr, connection, res, userId, arrayOfColors, arrayOfTypes)
   {
     typesStr += "e.TYPE_ID = " + type;
-    
+
     arrayOfTypes.push(typesStr);
     arrayOfColors.push(colorsStr);
 
@@ -118,7 +118,7 @@ module.exports = (app) =>
   {
     if(index < arrayOfTypes.length)
     {
-      buildWhereClause(outfitName, arrayOfTypes, arrayOfColors, (index+1), userId, connection, res, where + "(" + arrayOfTypes[index] + "AND (" + arrayOfColors[index] + ")) OR ")
+      buildWhereClause(outfitName, arrayOfTypes, arrayOfColors, (index+1), userId, connection, res, where + "(" + arrayOfTypes[index] + " AND (" + arrayOfColors[index] + ")) OR ")
     }
     else
     {
@@ -130,6 +130,7 @@ module.exports = (app) =>
 
   function queryDatabase(outfitName, arrayOfTypes, arrayOfColors, index, userId, connection, res, where)
   {
+    console.log(where);
     connection.query(`SELECT o.OUTFIT_ID, o.NAME, o.UUID as outfitUUID, e.ELEMENT_ID, e.IMAGE, e.UUID as elementUUID, e.TYPE_ID, exc.COLOR_ID
                       FROM outfit o
                       	inner join outfit_x_element oxe on o.OUTFIT_ID = oxe.OUTFIT_ID
@@ -166,17 +167,17 @@ module.exports = (app) =>
 
   function buildOutfitsObject(result, outfitIndex, connection, outfits, elements, colors, res, tempElements, tempOutfits)
   {
-    if(index < result.length)
+    if(outfitIndex < result.length)
     {
 
-      if( outfitIndex > 0 &&  !(tempElements.some(e => e.uuid === result[index].elementUUID)) )
+      if( outfitIndex > 0 &&  !(tempElements.some(e => e.uuid === result[outfitIndex].elementUUID)) )
       {
         elements.push(tempElements[tempElements.length-1]);
 
         colors = [];
       }
 
-      if( outfitIndex > 0 && !(tempOutfits.some(e => e.uuid === result[index].outfitUUID)) )
+      if( outfitIndex > 0 && !(tempOutfits.some(e => e.uuid === result[outfitIndex].outfitUUID)) )
       {
         outfits.push(tempOutfits[tempOutfits.length-1]);
 
@@ -202,6 +203,9 @@ module.exports = (app) =>
     }
     else
     {
+      elements.push(tempElements[tempElements.length-1]);
+      outfits.push(tempOutfits[tempOutfits.length-1]);
+
       connection.release();
       res.status(200).send({ outfits: outfits });
     }
