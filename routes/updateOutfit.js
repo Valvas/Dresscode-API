@@ -107,7 +107,7 @@ module.exports = (app) =>
 
   function createNewOutfitFromProvidedUuid(outfitName, elements, outfitUuid, accountId, connection, res)
   {
-    functions.checkUuidFormat(providedUuid, (error) =>
+    functions.checkUuidFormat(outfitUuid, (error) =>
     {
       if(error != null)
       {

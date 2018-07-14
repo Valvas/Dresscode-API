@@ -6,11 +6,15 @@ const functions   = require('../functions');
 
 module.exports = (app) =>
 {
-  app.post('/searchElement', (req, res) =>
+  app.post('/generateOutfit', (req, res) =>
   {
     if(req.headers.authorization == undefined) res.status(406).send({ message: messages.MISSING_TOKEN, detail: null });
 
-    else if(req.body.type == undefined && req.body.color == undefined) res.status(406).send({ message: messages.MISSING_PARAMETERS, detail: null });
+    else if(req.body.type == undefined) res.status(406).send({ message: messages.MISSING_TYPE, detail: null });
+
+    else if(req.body.type.length < 2) res.status(406).send({ message: messages.AMOUNT_OF_TYPES_RECQUIRED, detail: null });
+
+    else if(req.body.color == undefined) res.status(406).send({ message: messages.MISSING_COLOR, detail: null });
 
     else
     {
@@ -38,7 +42,7 @@ module.exports = (app) =>
                 else
                 {
                   var colorsStr = "";
-                  putColorsOfElementInString(req.body.color, req.body.type, 0, colorsStr, connection, res, account.USER_ID)
+                  putColorsOfElementInString(req.body.color, req.body.type, 0, colorsStr, connection, res, account.USER_ID);
                 }
               });
             }
@@ -47,42 +51,6 @@ module.exports = (app) =>
       });
     }
   });
-
-  /****************************************************************************************************/
-
-  function findElement(type, colors, userId, connection, res)
-  {
-    var colorClause = "";
-    var typeClause = "";
-    if(colors.length > 0)
-    {
-      colorClause = " and exc.COLOR_ID in (" + colors + ")";
-    }
-    if(type.length > 0)
-    {
-      typeClause = " and e.TYPE_ID in (" + type + ")";
-    }
-    connection.query(`SELECT e.ELEMENT_ID, e.TYPE_ID, e.UUID, e.IMAGE, exc.COLOR_ID FROM element e inner join element_x_color exc on e.ELEMENT_ID = exc.ELEMENT_ID WHERE e.USER_ID = ${userId}` + typeClause + colorClause + ` AND e.USER_ID = ` + userId, (error, result) =>
-    {
-      var elements = [];
-      if(error)
-      {
-        connection.release();
-
-        res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
-      }
-      else if(result[0] == undefined)
-      {
-        connection.release();
-
-        res.status(200).send({ elements: elements });
-      }
-      else
-      {
-        getColorsForEachElement(result, 0, connection, elements, res);
-      }
-    });
-  }
 
   /****************************************************************************************************/
 
@@ -101,33 +69,58 @@ module.exports = (app) =>
       {
         colorsStr = colorsStr.substr(0, colorsStr.length - 2);
       }
-      putTypesOfElementInString(colorsStr, types, 0, typesStr, connection, res, userId);
+
+      var where = "";
+      buildWhereClause(colorsStr, types, 0, connection, res, userId, where);
     }
   }
 
   /****************************************************************************************************/
 
-  function putTypesOfElementInString(colorsStr, types, typesIndex, typesStr, connection, res, userId)
+  function buildWhereClause(colorsStr, types, index, connection, res, userId, where)
   {
-    if(types != undefined && typesIndex < types.length)
+    if(index < types.length)
     {
-      typesStr += types[typesIndex] + ", ";
-
-      putTypesOfElementInString(colorsStr, types, (typesIndex+1), typesStr, connection, res, userId);
+      buildWhereClause(colorsStr, types, (index+1), connection, res, userId, where + "(TYPE_ID = " + types[index] + " AND exc.COLOR_ID IN (" + colorsStr + ")) OR ");
     }
     else
     {
-      if(typesStr.length > 0)
-      {
-        typesStr = typesStr.substr(0, typesStr.length - 2);
-      }
-      findElement(typesStr, colorsStr, userId, connection, res)
+      queryDatabase(userId, connection, res, where.substr(0, where.length - 4), types);
     }
   }
 
   /****************************************************************************************************/
 
-  function getColorsForEachElement(result, index, connection, elements, res)
+  function queryDatabase(userId, connection, res, where, types)
+  {
+    connection.query(`SELECT * FROM element e
+                    	inner join element_x_color exc on exc.ELEMENT_ID = e.ELEMENT_ID
+                    WHERE ` + where + ` AND e.USER_ID = ` + userId, (error, result) =>
+    {
+      var elements = [];
+
+      if(error)
+      {
+        connection.release();
+
+        res.status(500).send({ message: messages.DATABASE_ERROR, detail: error.message });
+      }
+      else if(result[0] == undefined)
+      {
+        connection.release();
+
+        res.status(200).send({ elements: elements });
+      }
+      else
+      {
+        getColorsForEachElement(result, 0, connection, elements, res, types);
+      }
+    });
+  }
+
+  /****************************************************************************************************/
+
+  function getColorsForEachElement(result, index, connection, elements, res, types)
   {
     if(index < result.length)
     {
@@ -156,16 +149,52 @@ module.exports = (app) =>
             });
           }
 
-          getColorsForEachElement(result, (index+1), connection, elements, res);
+          getColorsForEachElement(result, (index+1), connection, elements, res, types);
         }
       });
     }
     else
     {
       connection.release();
-      res.status(200).send({ elements: elements });
+
+      var generatedElements = [];
+      var elementsUsed = [];
+
+      generateOutfit(elements, 0, res, types, generatedElements, elementsUsed);
     }
   }
 
   /****************************************************************************************************/
+
+  function generateOutfit(elements, index, res, types, generatedElements, elementsUsed)
+  {
+    if(index < (types.length))
+    {
+      var elementIndex = getRandomInt(elements.length);
+
+      if( elementsUsed.includes(elementIndex) && generatedElements.some(e => e.type === elements[elementIndex].type) )
+      {
+        generateOutfit(elements, index, res, types, generatedElements, elementsUsed);
+      }
+      else
+      {
+        generatedElements.push(elements[elementIndex]);
+
+        elementsUsed.push(elementIndex);
+
+        generateOutfit(elements, (index+1), res, types, generatedElements, elementsUsed);
+      }
+    }
+    else
+    {
+      res.status(200).send({ elements: generatedElements });
+    }
+  }
+
+  /****************************************************************************************************/
+
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+  }
+
 };

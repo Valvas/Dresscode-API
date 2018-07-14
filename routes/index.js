@@ -18,4 +18,6 @@ module.exports = (app) =>
   require('./updateOutfit')(app);
   require('./searchElement')(app);
   require('./searchOutfit')(app);
+  require('./generateOutfitBis')(app);
+  require('./generateOutfit')(app);
 };

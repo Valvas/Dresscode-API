@@ -130,13 +130,12 @@ module.exports = (app) =>
 
   function queryDatabase(outfitName, arrayOfTypes, arrayOfColors, index, userId, connection, res, where)
   {
-    console.log(where);
     connection.query(`SELECT o.OUTFIT_ID, o.NAME, o.UUID as outfitUUID, e.ELEMENT_ID, e.IMAGE, e.UUID as elementUUID, e.TYPE_ID, exc.COLOR_ID
                       FROM outfit o
                       	inner join outfit_x_element oxe on o.OUTFIT_ID = oxe.OUTFIT_ID
                         inner join element e on e.ELEMENT_ID = oxe.ELEMENT_ID
                         inner join element_x_color exc on exc.ELEMENT_ID = e.ELEMENT_ID
-                      WHERE o.NAME LIKE '%${outfitName}%' AND ` + where, (error, result) =>
+                      WHERE o.NAME LIKE '%${outfitName}%' AND ` + where + ` AND o.USER_ID = ` + userId, (error, result) =>
     {
       var outfits = [];
       var elements = [];

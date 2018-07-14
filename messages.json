@@ -38,5 +38,6 @@
   "WARDROBE_ELEMENT_UPDATED": "L'élément a bien été mis à jour",
   "WARDROBE_OUTFIT_DELETED": "La tenue a bien été supprimée",
   "WARDROBE_OUTFIT_UPDATED": "La tenue a bien été mise à jour",
-  "MISSING_PARAMETERS": "Il manque un paramètre dans la requête"
+  "MISSING_PARAMETERS": "Il manque un paramètre dans la requête",
+  "AMOUNT_OF_TYPES_RECQUIRED": "Il faut au moins deux types de vêtement par tenue"
 }
