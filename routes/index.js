@@ -20,4 +20,5 @@ module.exports = (app) =>
   require('./searchOutfit')(app);
   require('./generateOutfitBis')(app);
   require('./generateOutfit')(app);
+  require('./deleteAccount')(app);
 };
