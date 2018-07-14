@@ -9,7 +9,7 @@ module.exports = (app) =>
   {
     if(req.headers.authorization == undefined) res.status(406).send({ message: messages.MISSING_TOKEN, detail: null });
 
-    else if(req.body.elementId == undefined) res.status(406).send({ message: messages.MISSING_ID, detail: null });
+    else if(req.body.uuid == undefined) res.status(406).send({ message: messages.MISSING_UUID, detail: null });
 
     else
     {
@@ -31,7 +31,7 @@ module.exports = (app) =>
 
                 else
                 {
-                  connection.query(`SELECT * FROM element WHERE ELEMENT_ID = ${req.body.elementId}`, (error, result) =>
+                  connection.query(`SELECT * FROM element WHERE UUID = "${req.body.uuid}"`, (error, result) =>
                   {
                     if(error)
                     {
@@ -56,7 +56,7 @@ module.exports = (app) =>
                           type: result[0].TYPE_ID
                         };
 
-                        connection.query(`SELECT COLOR_ID FROM element_x_color WHERE ELEMENT_ID = ${req.body.elementId}`, (error, resultColor) =>
+                        connection.query(`SELECT COLOR_ID FROM element_x_color WHERE ELEMENT_ID = ${result[0].ELEMENT_ID}`, (error, resultColor) =>
                         {
                           if(error)
                           {

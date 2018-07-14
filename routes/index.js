@@ -16,4 +16,5 @@ module.exports = (app) =>
   require('./updateElement')(app);
   require('./updateOutfit')(app);
   require('./searchElement')(app);
+  require('./searchOutfit')(app);
 };

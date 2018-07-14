@@ -5,7 +5,7 @@ const functions   = require('../functions');
 
 module.exports = (app) =>
 {
-  app.delete('/deleteElement', (req, res) =>
+  app.post('/deleteElement', (req, res) =>
   {
     if(req.headers.authorization == undefined) res.status(406).send({ message: messages.MISSING_TOKEN, detail: null });
 

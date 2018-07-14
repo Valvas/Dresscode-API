@@ -36,5 +36,6 @@
   "NAME_ALREADY_USED": "Ce nom de tenue est déjà utilisé",
   "WARDROBE_ELEMENT_UPDATED": "L'élément a bien été mis à jour",
   "WARDROBE_OUTFIT_DELETED": "La tenue a bien été supprimée",
-  "WARDROBE_OUTFIT_UPDATED": "La tenue a bien été mise à jour"
+  "WARDROBE_OUTFIT_UPDATED": "La tenue a bien été mise à jour",
+  "MISSING_PARAMETERS": "Il manque un paramètre dans la requête"
 }

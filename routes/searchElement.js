@@ -10,9 +10,7 @@ module.exports = (app) =>
   {
     if(req.headers.authorization == undefined) res.status(406).send({ message: messages.MISSING_TOKEN, detail: null });
 
-    else if(req.body.type == undefined) res.status(406).send({ message: messages.MISSING_TYPE, detail: null });
-
-    else if(req.body.color == undefined) res.status(406).send({ message: messages.MISSING_COLOR, detail: null });
+    else if(req.body.type == undefined && req.body.color == undefined) res.status(406).send({ message: messages.MISSING_PARAMETERS, detail: null });
 
     else
     {
@@ -54,7 +52,17 @@ module.exports = (app) =>
 
   function findElement(type, colors, userId, connection, res)
   {
-    connection.query(`SELECT e.ELEMENT_ID, e.TYPE_ID, e.UUID, e.IMAGE, exc.COLOR_ID FROM element e inner join element_x_color exc on e.ELEMENT_ID = exc.ELEMENT_ID WHERE e.USER_ID = ${userId} and e.TYPE_ID in (${type}) and exc.COLOR_ID in (${colors})`, (error, result) =>
+    var colorClause = "";
+    var typeClause = "";
+    if(colors.length > 0)
+    {
+      colorClause = "and exc.COLOR_ID in (" + colors + ")";
+    }
+    if(type.length > 0)
+    {
+      typeClause = " and e.TYPE_ID in (" + type + ") "
+    }
+    connection.query(`SELECT e.ELEMENT_ID, e.TYPE_ID, e.UUID, e.IMAGE, exc.COLOR_ID FROM element e inner join element_x_color exc on e.ELEMENT_ID = exc.ELEMENT_ID WHERE e.USER_ID = ${userId}` + typeClause + colorClause, (error, result) =>
     {
       var elements = [];
       if(error)
@@ -80,7 +88,7 @@ module.exports = (app) =>
 
   function putColorsOfElementInString(colors, types, colorsIndex, colorsStr, connection, res, userId)
   {
-    if(colorsIndex < colors.length)
+    if(colors != undefined && colorsIndex < colors.length)
     {
       colorsStr += colors[colorsIndex] + ", ";
 
@@ -89,7 +97,10 @@ module.exports = (app) =>
     else
     {
       var typesStr = "";
-      colorsStr = colorsStr.substr(0, colorsStr.length - 2);
+      if(colorsStr.length > 0)
+      {
+        colorsStr = colorsStr.substr(0, colorsStr.length - 2);
+      }
       putTypesOfElementInString(colorsStr, types, 0, typesStr, connection, res, userId);
     }
   }
@@ -98,7 +109,7 @@ module.exports = (app) =>
 
   function putTypesOfElementInString(colorsStr, types, typesIndex, typesStr, connection, res, userId)
   {
-    if(typesIndex < types.length)
+    if(types != undefined && typesIndex < types.length)
     {
       typesStr += types[typesIndex] + ", ";
 
@@ -106,7 +117,10 @@ module.exports = (app) =>
     }
     else
     {
-      typesStr = typesStr.substr(0, typesStr.length - 2);
+      if(typesStr.length > 0)
+      {
+        typesStr = typesStr.substr(0, typesStr.length - 2);
+      }
       findElement(typesStr, colorsStr, userId, connection, res)
     }
   }
