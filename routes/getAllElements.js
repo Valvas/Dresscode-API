@@ -61,6 +61,7 @@ module.exports = (app) =>
       });
     }
   });
+
   function getColorsForEachElement(result, index, connection, elements, res)
   {
     if(index < result.length)
@@ -97,4 +98,5 @@ module.exports = (app) =>
       res.status(200).send({ elements: elements });
     }
   }
+  
 };
